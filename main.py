@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from auth import router as auth_router
-from auth import router as auth_router
+from mangum import Mangum
 
 load_dotenv()
 
@@ -20,8 +20,9 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
-app.include_router(auth_router)
 
 @app.get("/")
 def root():
     return {"message": "Auth Service running"}
+
+handler = Mangum(app)
