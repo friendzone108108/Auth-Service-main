@@ -150,11 +150,13 @@ def me(current_user = Depends(get_current_user)):
 @router.get("/google/login")
 def google_login():
     """Generate a URL to login with Google."""
+    # Use the AWS API Gateway URL from environment, fallback to localhost for dev
+    host_url = os.getenv("HOST_URL", "http://127.0.0.1:8000")
     response = supabase.auth.sign_in_with_oauth(
         {
             "provider": "google",
             "options": {
-                "redirect_to": "http://127.0.0.1:8000/auth/google/callback",
+                "redirect_to": f"{host_url}/auth/google/callback",
             }
         }
     )
@@ -175,12 +177,6 @@ def google_callback(request: Request):
         user = session_data.user
         
         # Check if profile exists (Logic moved to frontend/onboarding service, but we still redirect)
-        # Since we removed profiles.py, we just redirect to dashboard. 
-        # Frontend will handle "if profile missing -> go to onboarding" logic via its own check if needed.
-        # OR we redirect to onboarding by default for new users?
-        # User said: "Remove those [backend technologies]... logic moved to teammate's service"
-        # So we just redirect to dashboard, and let frontend decide.
-        
         return RedirectResponse(f"{FRONTEND_URL}/dashboard")
 
     except Exception as e:
@@ -190,11 +186,12 @@ def google_callback(request: Request):
 @router.get("/github/login")
 def github_login():
     """Generate a URL to login with GitHub."""
+    host_url = os.getenv("HOST_URL", "http://127.0.0.1:8000")
     response = supabase.auth.sign_in_with_oauth(
         {
             "provider": "github",
             "options": {
-                "redirect_to": "http://127.0.0.1:8000/auth/github/callback",
+                "redirect_to": f"{host_url}/auth/github/callback",
             }
         }
     )

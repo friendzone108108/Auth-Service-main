@@ -6,11 +6,12 @@ from dotenv import load_dotenv
 from auth import router as auth_router
 from mangum import Mangum
 
+# Load .env file for local development
 load_dotenv()
 
 app = FastAPI(title="Auth Microservice (email/password)")
 
-# CORS — change allow_origins in prod
+# CORS — allow all origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,10 +20,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include auth routes
 app.include_router(auth_router)
 
 @app.get("/")
 def root():
     return {"message": "Auth Service running"}
 
-handler = Mangum(app)
+# Mangum handler for AWS Lambda
+# SAM deploys directly to root, no prefix stripping needed
+handler = Mangum(app, lifespan="off")
+
+# For local development with uvicorn
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
